@@ -69,22 +69,6 @@ It is recommended to [install this module by using pip](https://pypi.org/project
 pip install youtube-transcript-api
 ```
 
-### With Nix
-
-If you have [Nix](https://nixos.org/download.html) installed with flakes enabled, you can install directly from this repository:
-
-```bash
-# Install to your profile
-nix profile install github:jdepoix/youtube-transcript-api
-
-# Or run directly without installing
-nix run github:jdepoix/youtube-transcript-api -- <video_id> --languages en
-
-# Or try it in a temporary shell
-nix shell github:jdepoix/youtube-transcript-api
-youtube_transcript_api <video_id>
-```
-
 You can either integrate this module [into an existing application](#api) or just use it via a [CLI](#cli).
 
 ## API
@@ -595,27 +579,23 @@ echo "use flake" > .envrc
 direnv allow
 ```
 
-The Nix development shell provides:
-- Python 3.13
-- Poetry
-- All test dependencies (pytest, coverage, httpretty)
-- Development tools (ruff for linting and formatting)
+The Nix development shell provides Python 3.13, Poetry, and common development tools. **All Python dependencies are still managed by Poetry** through `poetry.lock` - Nix only provides the environment.
 
-Run tests and checks:
+Run tests and checks the same way as with Poetry:
 ```shell
 poetry install --with test,dev
-poe test
-poe coverage
-poe format
-poe lint
-poe precommit  # Run all checks at once
+poetry run poe test
+poetry run poe coverage
+poetry run poe format
+poetry run poe lint
+poetry run poe precommit  # Run all checks at once
 ```
 
-You can also build and run the package directly with Nix:
-```shell
-nix build      # Build the package
-nix run . -- <video_id> --languages en  # Run the CLI
-```
+**Important**: The flake does not create a Nix package build. It only provides a development shell. This means:
+- ✅ `poetry.lock` remains the single source of truth for Python dependencies
+- ✅ No risk of dependency version divergence between Poetry and Nix
+- ✅ Contributors use the same Poetry workflow, just with a Nix-provided environment
+- ❌ No `nix build` or `nix run` commands (use `pip` for installation instead)
 
 ### Setup with Poetry (Traditional)
 
