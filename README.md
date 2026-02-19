@@ -61,10 +61,28 @@
 
 ## Install
 
+### With pip
+
 It is recommended to [install this module by using pip](https://pypi.org/project/youtube-transcript-api/):
 
-```
+```bash
 pip install youtube-transcript-api
+```
+
+### With Nix
+
+If you have [Nix](https://nixos.org/download.html) installed with flakes enabled, you can install directly from this repository:
+
+```bash
+# Install to your profile
+nix profile install github:jdepoix/youtube-transcript-api
+
+# Or run directly without installing
+nix run github:jdepoix/youtube-transcript-api -- <video_id> --languages en
+
+# Or try it in a temporary shell
+nix shell github:jdepoix/youtube-transcript-api
+youtube_transcript_api <video_id>
 ```
 
 You can either integrate this module [into an existing application](#api) or just use it via a [CLI](#cli).
@@ -563,6 +581,43 @@ guarantee that it won't stop working tomorrow, if they change how things work. I
 working again as soon as possible if that happens. So if it stops working, let me know!  
 
 ## Contributing
+
+### Setup with Nix (Recommended)
+
+If you have [Nix](https://nixos.org/download.html) installed, you can get a fully reproducible development environment with zero configuration:
+
+```shell
+# Enter development shell with all dependencies
+nix develop
+
+# Or use direnv for automatic environment activation
+echo "use flake" > .envrc
+direnv allow
+```
+
+The Nix development shell provides:
+- Python 3.13
+- Poetry
+- All test dependencies (pytest, coverage, httpretty)
+- Development tools (ruff for linting and formatting)
+
+Run tests and checks:
+```shell
+poetry install --with test,dev
+poe test
+poe coverage
+poe format
+poe lint
+poe precommit  # Run all checks at once
+```
+
+You can also build and run the package directly with Nix:
+```shell
+nix build      # Build the package
+nix run . -- <video_id> --languages en  # Run the CLI
+```
+
+### Setup with Poetry (Traditional)
 
 To setup the project locally run the following (requires [poetry](https://python-poetry.org/docs/) to be installed):
 ```shell
