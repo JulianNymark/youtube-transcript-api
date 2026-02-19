@@ -568,34 +568,34 @@ working again as soon as possible if that happens. So if it stops working, let m
 
 ### Setup with Nix (Recommended)
 
-If you have [Nix](https://nixos.org/download.html) installed, you can get a fully reproducible development environment with zero configuration:
+If you have [Nix](https://nixos.org/download.html) installed, you can get a reproducible development environment with zero configuration:
 
 ```shell
-# Enter development shell with all dependencies
+# Enter development shell (provides Python + Poetry)
 nix develop
+
+# Install dependencies with Poetry
+poetry install --with test,dev
 
 # Or use direnv for automatic environment activation
 echo "use flake" > .envrc
 direnv allow
 ```
 
-The Nix development shell provides Python 3.13, Poetry, and common development tools. **All Python dependencies are still managed by Poetry** through `poetry.lock` - Nix only provides the environment.
+The Nix flake provides **only Python and Poetry** - all Python package dependencies are managed exclusively by Poetry through `poetry.lock`. This ensures:
+- ✅ **Single source of truth**: `poetry.lock` is the only place Python dependencies are defined
+- ✅ **No duplication**: Nix doesn't duplicate or compete with Poetry's dependency management
+- ✅ **Reproducible environment**: Every contributor gets the same Python (3.13) and Poetry (2.2.1) versions
+- ✅ **Same workflow**: Use all Poetry commands exactly as you would without Nix
 
-Run tests and checks the same way as with Poetry:
+Run tests and checks:
 ```shell
-poetry install --with test,dev
 poetry run poe test
 poetry run poe coverage
 poetry run poe format
 poetry run poe lint
 poetry run poe precommit  # Run all checks at once
 ```
-
-**Important**: The flake does not create a Nix package build. It only provides a development shell. This means:
-- ✅ `poetry.lock` remains the single source of truth for Python dependencies
-- ✅ No risk of dependency version divergence between Poetry and Nix
-- ✅ Contributors use the same Poetry workflow, just with a Nix-provided environment
-- ❌ No `nix build` or `nix run` commands (use `pip` for installation instead)
 
 ### Setup with Poetry (Traditional)
 
