@@ -12,44 +12,89 @@
         pkgs = nixpkgs.legacyPackages.${system};
         python = pkgs.python3;
         
-        # Python environment with dependencies from pyproject.toml
-        pythonEnv = python.withPackages (ps: with ps; [
-          requests
-          defusedxml
-          # Dev dependencies
-          pytest
-          coverage
-          httpretty
-          ruff
-        ]);
+        # Build the package using poetry2nix
+        youtube-transcript-api = pkgs.python3Packages.buildPythonApplication {
+          pname = "youtube-transcript-api";
+          version = "1.2.4";
+          format = "pyproject";
+
+          src = ./.;
+
+          nativeBuildInputs = with pkgs.python3Packages; [
+            poetry-core
+          ];
+
+          propagatedBuildInputs = with pkgs.python3Packages; [
+            requests
+            defusedxml
+          ];
+
+          # Test dependencies (optional, uncomment if you want to run tests during build)
+          # nativeCheckInputs = with pkgs.python3Packages; [
+          #   pytest
+          #   coverage
+          #   httpretty
+          # ];
+
+          # Disable tests for now (can enable with nativeCheckInputs)
+          doCheck = false;
+
+          # Disable runtime dependency version checks (nixpkgs may have newer versions)
+          dontCheckRuntimeDeps = true;
+
+          meta = with pkgs.lib; {
+            description = "Python API for retrieving YouTube video transcripts/subtitles";
+            homepage = "https://github.com/jdepoix/youtube-transcript-api";
+            license = licenses.mit;
+            maintainers = [ ];
+            mainProgram = "youtube_transcript_api";
+          };
+        };
 
       in
       {
-        # Development shell - this is the main use case for contributors
+        # The package
+        packages = {
+          default = youtube-transcript-api;
+          youtube-transcript-api = youtube-transcript-api;
+        };
+
+        # The app (CLI)
+        apps = {
+          default = {
+            type = "app";
+            program = "${youtube-transcript-api}/bin/youtube_transcript_api";
+          };
+        };
+
+        # Development shell
         devShells.default = pkgs.mkShell {
-          packages = [
-            pkgs.poetry
-            pythonEnv
+          buildInputs = with pkgs; [
+            python
+            poetry
+            
+            # Development tools
+            python3Packages.pytest
+            python3Packages.coverage
+            python3Packages.httpretty
+            python3Packages.ruff
           ];
 
           shellHook = ''
-            echo "YouTube Transcript API Development Environment"
-            echo "=============================================="
+            echo "🎬 YouTube Transcript API Development Environment"
+            echo "================================================"
             echo "Python: $(python --version)"
             echo "Poetry: $(poetry --version)"
             echo ""
-            echo "Setup:"
-            echo "  poetry install --with test,dev"
-            echo ""
             echo "Available commands:"
-            echo "  poetry run poe test       - Run tests"
-            echo "  poetry run poe coverage   - Run coverage"
-            echo "  poetry run poe lint       - Run linter"
-            echo "  poetry run poe format     - Run formatter"
-            echo "  poetry run poe precommit  - Run all checks"
+            echo "  poetry install      - Install dependencies"
+            echo "  poetry run poe test - Run tests"
+            echo "  poetry shell        - Activate poetry virtualenv"
             echo ""
-            echo "Note: Dependencies are managed via Poetry (poetry.lock)"
-            echo "      Nix provides the base Python and Poetry itself"
+            echo "Or use Nix commands:"
+            echo "  nix build           - Build the package"
+            echo "  nix run             - Run the CLI"
+            echo "  nix develop         - Enter dev shell (you're here!)"
           '';
         };
       }
