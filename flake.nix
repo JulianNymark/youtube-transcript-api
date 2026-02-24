@@ -10,15 +10,26 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        python = pkgs.python3;
+        
+        # Python environment with dependencies from pyproject.toml
+        pythonEnv = python.withPackages (ps: with ps; [
+          requests
+          defusedxml
+          # Dev dependencies
+          pytest
+          coverage
+          httpretty
+          ruff
+        ]);
 
       in
       {
-        # Development shell - provides Python and Poetry, nothing else
-        # All Python dependencies are managed via Poetry (poetry.lock)
+        # Development shell - this is the main use case for contributors
         devShells.default = pkgs.mkShell {
           packages = [
-            pkgs.python3
             pkgs.poetry
+            pythonEnv
           ];
 
           shellHook = ''
@@ -27,7 +38,7 @@
             echo "Python: $(python --version)"
             echo "Poetry: $(poetry --version)"
             echo ""
-            echo "Getting started:"
+            echo "Setup:"
             echo "  poetry install --with test,dev"
             echo ""
             echo "Available commands:"
@@ -37,8 +48,8 @@
             echo "  poetry run poe format     - Run formatter"
             echo "  poetry run poe precommit  - Run all checks"
             echo ""
-            echo "NOTE: All Python dependencies are managed by Poetry (poetry.lock)."
-            echo "      Nix only provides Python and Poetry themselves."
+            echo "Note: Dependencies are managed via Poetry (poetry.lock)"
+            echo "      Nix provides the base Python and Poetry itself"
           '';
         };
       }
